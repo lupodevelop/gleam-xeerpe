@@ -113,8 +113,7 @@ Seen in the bundled version, <!--v-->0.0.19<!--/v-->:
 ## Demo
 
 `dev/` is a Lustre app showing every effect, option and color. It is also this project's site. To run it:
-`gleam run -m lustre/dev start xeerpe_dev`. Add `#reference` to the address for the full list.
-(Lustre is only a development dependency of this package.)
+`gleam run -m lustre/dev start xeerpe_dev`. 
 
 ## Working on this package
 
