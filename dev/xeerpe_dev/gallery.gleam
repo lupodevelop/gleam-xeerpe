@@ -773,17 +773,14 @@ fn glow_tiles() -> List(Card) {
       title,
       code,
       box_bg()
-        |> xeerpe.glow(
-          xeerpe.GlowOptions(
-            ..g,
-            color: Some(colors.magenta),
-            amount: Some("24px"),
-            type_: o.0,
-            spread: o.1,
-            x: o.2,
-            y: o.3,
-          ),
-        ),
+        |> xeerpe.glow(xeerpe.GlowOptions(
+          color: Some(colors.magenta),
+          amount: Some("24px"),
+          type_: o.0,
+          spread: o.1,
+          x: o.2,
+          y: o.3,
+        )),
     )
   }
   [
