@@ -213,7 +213,6 @@ fn random_card(n: Int) -> Card {
 type Fit {
   Cover
   Bare
-  Big
 }
 
 fn logo(
@@ -222,25 +221,16 @@ fn logo(
   look: xeerpe.Builder,
   fit: Fit,
 ) -> Element(msg) {
-  html.div(
-    [
+  html.div([class("lt"), style(look)], [
+    html.img([
+      attribute.src(src),
+      attribute.alt(alt),
       class(case fit {
-        Big -> "lt res"
-        _ -> "lt"
+        Cover -> "cover"
+        Bare -> "bare"
       }),
-      style(look),
-    ],
-    [
-      html.img([
-        attribute.src(src),
-        attribute.alt(alt),
-        class(case fit {
-          Cover | Big -> "cover"
-          Bare -> "bare"
-        }),
-      ]),
-    ],
-  )
+    ]),
+  ])
 }
 
 fn glow(color: String) -> xeerpe.Builder {
@@ -321,7 +311,7 @@ fn view(model: Model) -> Element(Msg) {
         html.span([class("op")], [html.text("+")]),
         logo("gleam.svg", "Gleam", xeerpe.new(), Bare),
         html.span([class("op")], [html.text("=")]),
-        logo("logo.png", "xeerpe for Gleam", result_tile(), Big),
+        logo("logo.png", "xeerpe for Gleam", result_tile(), Cover),
         html.span([class("op heart")], [html.text("♥")]),
         logo("lustre.png", "Lustre", glow(colors.iris), Cover),
       ]),
@@ -432,8 +422,7 @@ const css = "
   .bg { position: absolute; inset: 0 -50vw auto -50vw; height: 820px; z-index: -1; opacity: .5; -webkit-mask-image: linear-gradient(#000 35%, transparent); mask-image: linear-gradient(#000 35%, transparent) }
   .hero { padding: 3.5rem 0 1.5rem; color: #fff; text-align: center }
   .eq { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: clamp(.5rem, 2.2vw, 1.6rem); margin-bottom: 2rem }
-  .lt { width: clamp(64px, 13vw, 112px); aspect-ratio: 1; border-radius: 26%; display: grid; place-items: center }
-  .lt.res { width: clamp(96px, 22vw, 184px) }
+  .lt { width: clamp(64px, 14vw, 120px); aspect-ratio: 1; border-radius: 26%; display: grid; place-items: center }
   .lt img.cover { width: 100%; height: 100%; border-radius: 26%; object-fit: cover }
   .lt img.bare { width: 100%; height: 100%; filter: drop-shadow(0 0 14px #ff8be9) }
   .op { font-size: clamp(1.4rem, 4vw, 2.4rem); font-weight: 300; opacity: .7 }
