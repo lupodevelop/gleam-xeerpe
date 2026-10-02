@@ -213,6 +213,7 @@ fn random_card(n: Int) -> Card {
 type Fit {
   Cover
   Bare
+  Big
 }
 
 fn logo(
@@ -221,16 +222,25 @@ fn logo(
   look: xeerpe.Builder,
   fit: Fit,
 ) -> Element(msg) {
-  html.div([class("lt"), style(look)], [
-    html.img([
-      attribute.src(src),
-      attribute.alt(alt),
+  html.div(
+    [
       class(case fit {
-        Cover -> "cover"
-        Bare -> "bare"
+        Big -> "lt res"
+        _ -> "lt"
       }),
-    ]),
-  ])
+      style(look),
+    ],
+    [
+      html.img([
+        attribute.src(src),
+        attribute.alt(alt),
+        class(case fit {
+          Cover | Big -> "cover"
+          Bare -> "bare"
+        }),
+      ]),
+    ],
+  )
 }
 
 fn glow(color: String) -> xeerpe.Builder {
@@ -308,15 +318,16 @@ fn view(model: Model) -> Element(Msg) {
     html.header([class("hero")], [
       html.div([class("eq")], [
         logo("xeerpe.png", "xeerpe", glow(colors.malachite), Cover),
-        html.span([class("op")], [html.text("×")]),
-        logo("lustre.png", "Lustre", glow(colors.iris), Cover),
-        html.span([class("op")], [html.text("×")]),
+        html.span([class("op")], [html.text("+")]),
         logo("gleam.svg", "Gleam", xeerpe.new(), Bare),
         html.span([class("op")], [html.text("=")]),
-        logo("logo.png", "xeerpe for Gleam", result_tile(), Cover),
+        logo("logo.png", "xeerpe for Gleam", result_tile(), Big),
+        html.span([class("op heart")], [html.text("♥")]),
+        logo("lustre.png", "Lustre", glow(colors.iris), Cover),
       ]),
-      html.h1([text_style(title_gradient())], [
-        html.text("xeerpe for Lustre"),
+      html.h1([text_style(title_gradient())], [html.text("xeerpe for Gleam")]),
+      html.p([class("sub")], [
+        html.text("Made for Lustre, works anywhere on JavaScript"),
       ]),
       html.code([class("install")], [html.text("gleam add xeerpe")]),
       html.nav([], [
@@ -422,10 +433,12 @@ const css = "
   .hero { padding: 3.5rem 0 1.5rem; color: #fff; text-align: center }
   .eq { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: clamp(.5rem, 2.2vw, 1.6rem); margin-bottom: 2rem }
   .lt { width: clamp(64px, 13vw, 112px); aspect-ratio: 1; border-radius: 26%; display: grid; place-items: center }
-  .lt:last-child { width: clamp(96px, 22vw, 184px) }
+  .lt.res { width: clamp(96px, 22vw, 184px) }
   .lt img.cover { width: 100%; height: 100%; border-radius: 26%; object-fit: cover }
   .lt img.bare { width: 100%; height: 100%; filter: drop-shadow(0 0 14px #ff8be9) }
   .op { font-size: clamp(1.4rem, 4vw, 2.4rem); font-weight: 300; opacity: .7 }
+  .op.heart { color: #ff5fb8; opacity: 1; font-weight: 400 }
+  .sub { margin: .6rem 0 0; opacity: .85 }
   .install { display: inline-block; margin: 1rem 0 .75rem; padding: .35rem .8rem; background: rgba(0,0,0,.35); border-radius: 8px; font-size: .95rem }
   .hero nav { display: flex; gap: 1.25rem; justify-content: center }
   .hero a { color: #fff; opacity: .9 }
