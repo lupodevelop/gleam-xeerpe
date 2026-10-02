@@ -1,5 +1,5 @@
 name = "xeerpe"
-version = "0.1.0"
+version = "1.0.0"
 description = "Chainable CSS backgrounds: a Gleam binding for xeerpe (JavaScript target), with xeerpe bundled."
 licences = ["MIT"]
 repository = { type = "github", user = "lupodevelop", repo = "gleam-xeerpe" }
