@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "The npm xeerpe that the tests compare the Gleam binding against.",
+  "devDependencies": {
+    "xeerpe": "0.0.19"
+  }
+}

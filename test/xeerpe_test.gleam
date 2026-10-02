@@ -5,6 +5,7 @@ import gleam/option.{None, Some}
 import gleam/result
 import gleam/string
 import gleeunit
+import lustre/attribute
 import lustre/element
 import lustre/element/html
 import xeerpe.{
@@ -13,7 +14,7 @@ import xeerpe.{
   LinearGradientOptions, NoiseOptions, Percent, PositionedColor,
   RadialGradientOptions, ToTopRight, Turbulence, Unit, VignetteOptions,
 }
-import xeerpe/lustre as xl
+import xeerpe/css
 import xeerpe/quick
 
 pub fn main() {
@@ -234,7 +235,7 @@ pub fn lustre_kebab_test() {
   let el =
     html.div(
       [
-        xl.attribute(
+        style(
           xeerpe.new()
           |> xeerpe.breathe(
             AnimationOptions(..xeerpe.animation_options, duration: Some("2s")),
@@ -765,7 +766,7 @@ pub fn versions_agree_test() {
 }
 
 pub fn keyframes_are_the_npm_css_test() {
-  assert animations_css_is_npm(xl.animations_css)
+  assert animations_css_is_npm(css.keyframes)
 }
 
 pub fn colors_match_npm_test() {
@@ -891,7 +892,7 @@ pub fn text_attribute_test() {
   let html =
     html.h1(
       [
-        xl.text_attribute(
+        text_style(
           xeerpe.new() |> quick.linear("#FFB347", "#4A1942", deg: 90.0),
         ),
       ],
@@ -904,7 +905,7 @@ pub fn text_attribute_test() {
 }
 
 pub fn keyframes_cover_every_animation_test() {
-  let css = xl.animations_css
+  let text = css.keyframes
   list.each(
     [
       "pulse",
@@ -918,12 +919,8 @@ pub fn keyframes_cover_every_animation_test() {
       "drift",
     ],
     fn(name) {
-      assert string.contains(css, "@keyframes xeerpe-" <> name)
+      assert string.contains(text, "@keyframes xeerpe-" <> name)
     },
-  )
-  assert string.contains(
-    element.to_string(xl.animations()),
-    "@keyframes xeerpe-drift",
   )
 }
 
@@ -943,7 +940,7 @@ fn sky() {
 }
 
 pub fn readme_example_test() {
-  let html = html.div([xl.attribute(sky())], []) |> element.to_string
+  let html = html.div([style(sky())], []) |> element.to_string
   assert string.contains(
     html,
     "animation:xeerpe-breathe 6s ease-in-out infinite",
@@ -958,4 +955,49 @@ pub fn readme_version_is_current_test() {
   let versions = readme_versions()
   assert versions != []
   assert list.all(versions, fn(v) { v == xeerpe.bundled_version })
+}
+
+// -- css (no framework) --
+
+fn style(b: Builder) {
+  attribute.styles(css.properties(b))
+}
+
+fn text_style(b: Builder) {
+  attribute.styles(css.text_properties(b))
+}
+
+pub fn css_properties_use_css_names_test() {
+  let props =
+    xeerpe.new()
+    |> quick.linear("#FFB347", "#4A1942", deg: 170.0)
+    |> quick.breathe("6s")
+    |> css.properties
+  assert list.key_find(props, "background-image") |> result.is_ok
+  assert list.key_find(props, "background-size") |> result.is_ok
+  assert list.key_find(props, "animation")
+    == Ok("xeerpe-breathe 6s ease-in-out infinite")
+  assert list.all(props, fn(pair) { string.lowercase(pair.0) == pair.0 })
+}
+
+pub fn css_inline_is_a_style_attribute_test() {
+  let text =
+    xeerpe.new() |> quick.linear("#FFB347", "#4A1942", deg: 90.0) |> css.inline
+  assert string.starts_with(text, "background-")
+  assert string.contains(text, ";")
+  assert !string.contains(text, "backgroundImage")
+}
+
+pub fn css_text_properties_test() {
+  let props =
+    xeerpe.new()
+    |> quick.linear("#FFB347", "#4A1942", deg: 90.0)
+    |> css.text_properties
+  assert list.key_find(props, "-webkit-background-clip") == Ok("text")
+  assert list.key_find(props, "color") == Ok("transparent")
+}
+
+pub fn keyframes_are_added_outside_a_browser_without_error_test() {
+  // no document in Node: must be a no-op, not a crash
+  assert css.add_keyframes() == Nil
 }

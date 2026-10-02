@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - run: npm install
-      - run: gleam format --check src test demo/src
+      - run: npm install --prefix test/npm-xeerpe
+      - run: gleam format --check src test dev
       - run: gleam test
-      - run: cd demo && gleam build
+      - run: scripts/build-site.sh

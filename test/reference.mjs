@@ -1,6 +1,9 @@
 // The same chains written straight against the npm package.
-import * as npm from "xeerpe";
-import { Builder, Preset } from "xeerpe";
+import { pathToFileURL } from "node:url";
+
+const npmDir = "test/npm-xeerpe/node_modules/xeerpe";
+const npm = await import(pathToFileURL(`${process.cwd()}/${npmDir}/dist/index.mjs`));
+const { Builder, Preset } = npm;
 import { toList } from "./gleam.mjs";
 
 const out = (s) => toList(Object.entries(s));
@@ -102,13 +105,13 @@ import { readFileSync } from "node:fs";
 const root = process.cwd();
 const read = (path) => readFileSync(`${root}/${path}`, "utf8");
 
-export const bundled_is_npm = () => read("src/xeerpe_vendor/xeerpe.mjs") === read("node_modules/xeerpe/dist/index.mjs");
+export const bundled_is_npm = () => read("src/xeerpe_vendor/xeerpe.mjs") === read(`${npmDir}/dist/index.mjs`);
 
-export const npm_version = () => JSON.parse(read("node_modules/xeerpe/package.json")).version;
+export const npm_version = () => JSON.parse(read(`${npmDir}/package.json`)).version;
 
 export const vendor_version_file = () => read("src/xeerpe_vendor/VERSION");
 
-export const animations_css_is_npm = (css) => css === read("node_modules/xeerpe/dist/animations.css").trim();
+export const animations_css_is_npm = (css) => css === read(`${npmDir}/dist/animations.css`).trim();
 
 // every npm color has a `pub const` with the same value, and colors.gleam has nothing else
 export const colors_in_sync = () => {

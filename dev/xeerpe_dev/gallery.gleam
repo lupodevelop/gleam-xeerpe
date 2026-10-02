@@ -1,10 +1,10 @@
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/result
-import swatches
 import xeerpe
 import xeerpe/colors
 import xeerpe/quick as q
+import xeerpe_dev/swatches
 
 /// How a tile is drawn: filled by the pipeline, or as a box on a base.
 pub type Preview {

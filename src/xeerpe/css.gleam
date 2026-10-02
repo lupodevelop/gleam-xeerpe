@@ -1,45 +1,51 @@
-//// Lustre helpers for `xeerpe`.
+//// The style of a `Builder` as CSS, for any framework or for plain DOM code.
+////
+//// In Lustre: `attribute.styles(css.properties(builder))`.
 
-import gleam/dict.{type Dict}
+import gleam/dict
 import gleam/list
 import gleam/string
-import lustre/attribute.{type Attribute}
-import lustre/element.{type Element}
-import lustre/element/html
 import xeerpe.{type Builder}
 
-/// An inline `style` attribute for any element. If the pipeline animates, the
-/// keyframes are added to the page once.
-pub fn attribute(b: Builder) -> Attribute(msg) {
-  styles(xeerpe.to_style(b))
+/// The CSS properties of a builder as `#(name, value)` pairs, with CSS names
+/// (`background-image`). If the background animates, the keyframes it needs are
+/// added to the page once.
+pub fn properties(b: Builder) -> List(#(String, String)) {
+  kebab_pairs(xeerpe.to_style(b))
 }
 
-/// A gradient text fill (`toTextStyle()`).
-pub fn text_attribute(b: Builder) -> Attribute(msg) {
-  styles(xeerpe.to_text_style(b))
+/// Same for a gradient text fill (`toTextStyle()`).
+pub fn text_properties(b: Builder) -> List(#(String, String)) {
+  kebab_pairs(xeerpe.to_text_style(b))
 }
 
-/// A `<style>` with xeerpe's keyframes, for pages rendered on the server. In the
-/// browser `attribute` adds them by itself.
-pub fn animations() -> Element(msg) {
-  html.style([], animations_css)
+/// The properties as the text of a `style` attribute: `"name:value;name:value"`.
+pub fn inline(b: Builder) -> String {
+  properties(b)
+  |> list.map(fn(pair) { pair.0 <> ":" <> pair.1 })
+  |> string.join(";")
 }
 
+/// Adds the keyframes to the page, once. Does nothing outside a browser.
+/// `properties` already calls it when the background animates.
 @external(javascript, "../xeerpe_ffi.mjs", "ensure_keyframes")
-fn ensure_keyframes(css: String) -> Nil
+fn add_keyframes_ffi(css: String) -> Nil
 
-/// xeerpe keys are camelCase; CSS wants kebab-case.
-fn styles(style: Dict(String, String)) -> Attribute(msg) {
+pub fn add_keyframes() -> Nil {
+  add_keyframes_ffi(keyframes)
+}
+
+fn kebab_pairs(style: dict.Dict(String, String)) -> List(#(String, String)) {
   case dict.has_key(style, "animation") {
-    True -> ensure_keyframes(animations_css)
+    True -> add_keyframes()
     False -> Nil
   }
   style
   |> dict.to_list
-  |> list.map(fn(p) { #(kebab(p.0), p.1) })
-  |> attribute.styles
+  |> list.map(fn(pair) { #(kebab(pair.0), pair.1) })
 }
 
+/// xeerpe keys are camelCase; CSS wants kebab-case.
 fn kebab(s: String) -> String {
   s
   |> string.to_graphemes
@@ -53,7 +59,8 @@ fn kebab(s: String) -> String {
 }
 
 /// xeerpe's `animations.css`, kept as a string so no bundler has to import CSS.
-pub const animations_css = "@keyframes xeerpe-pulse {
+/// For a server-rendered page, put it in a `<style>`.
+pub const keyframes = "@keyframes xeerpe-pulse {
     0%, 100% {
         opacity: 1;
     }

@@ -1,4 +1,3 @@
-import gallery.{type Card, Card, Fill, On, Swatch, Text}
 import gleam/dict
 import gleam/int
 import gleam/list
@@ -12,8 +11,9 @@ import lustre/element/html
 import lustre/event
 import xeerpe
 import xeerpe/colors
-import xeerpe/lustre as xl
+import xeerpe/css
 import xeerpe/quick as q
+import xeerpe_dev/gallery.{type Card, Card, Fill, On, Swatch, Text}
 
 pub fn main() {
   let app = lustre.application(init, update, view)
@@ -36,10 +36,10 @@ type Msg {
   SetTab(Tab)
 }
 
-@external(javascript, "./xeerpe_demo_ffi.mjs", "read_hash")
+@external(javascript, "./xeerpe_dev_ffi.mjs", "read_hash")
 fn read_hash() -> String
 
-@external(javascript, "./xeerpe_demo_ffi.mjs", "write_hash")
+@external(javascript, "./xeerpe_dev_ffi.mjs", "write_hash")
 fn write_hash(hash: String) -> Nil
 
 /// `#reference` opens the Reference tab.
@@ -218,10 +218,10 @@ type Fit {
 fn logo(
   src: String,
   alt: String,
-  style: xeerpe.Builder,
+  look: xeerpe.Builder,
   fit: Fit,
 ) -> Element(msg) {
-  html.div([class("lt"), xl.attribute(style)], [
+  html.div([class("lt"), style(look)], [
     html.img([
       attribute.src(src),
       attribute.alt(alt),
@@ -304,7 +304,7 @@ fn view(model: Model) -> Element(Msg) {
   }
   html.div([class("page")], [
     html.style([], css),
-    html.div([class("bg"), xl.attribute(backdrop())], []),
+    html.div([class("bg"), style(backdrop())], []),
     html.header([class("hero")], [
       html.div([class("eq")], [
         logo("xeerpe.png", "xeerpe", glow(colors.malachite), Cover),
@@ -315,7 +315,7 @@ fn view(model: Model) -> Element(Msg) {
         html.span([class("op")], [html.text("=")]),
         logo("logo.png", "xeerpe for Gleam", result_tile(), Cover),
       ]),
-      html.h1([xl.text_attribute(title_gradient())], [
+      html.h1([text_style(title_gradient())], [
         html.text("xeerpe for Lustre"),
       ]),
       html.code([class("install")], [html.text("gleam add xeerpe")]),
@@ -359,6 +359,14 @@ fn reference_sections() -> List(Element(Msg)) {
   })
 }
 
+fn style(b: xeerpe.Builder) -> Attribute(msg) {
+  attribute.styles(css.properties(b))
+}
+
+fn text_style(b: xeerpe.Builder) -> Attribute(msg) {
+  attribute.styles(css.text_properties(b))
+}
+
 /// Keeps gradient-only backgrounds from repeating: a repeated copy can show as a
 /// 1px line along an edge (a green one under `northern-lights`). Patterns and
 /// explicit sizes need to repeat, so they are left alone.
@@ -385,18 +393,14 @@ fn tile(card: Card, small: Bool) -> Element(msg) {
     ],
     [
       case card.preview {
-        Fill(b) ->
-          html.div([class("pv"), xl.attribute(b), no_repeat_gradient(b)], [])
+        Fill(b) -> html.div([class("pv"), style(b), no_repeat_gradient(b)], [])
         On(base, box) ->
-          html.div([class("pv"), xl.attribute(base), no_repeat_gradient(base)], [
-            html.div(
-              [class("box"), xl.attribute(box), no_repeat_gradient(box)],
-              [],
-            ),
+          html.div([class("pv"), style(base), no_repeat_gradient(base)], [
+            html.div([class("box"), style(box), no_repeat_gradient(box)], []),
           ])
         Text(b, label) ->
           html.div([class("pv text")], [
-            html.span([xl.text_attribute(b)], [html.text(label)]),
+            html.span([text_style(b)], [html.text(label)]),
           ])
         Swatch(color) ->
           html.div(

@@ -1,23 +1,28 @@
-<p align="center"><img src="https://raw.githubusercontent.com/lupodevelop/xeerpe-lustre/main/logo.png" alt="xeerpe for Gleam" width="140"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lupodevelop/gleam-xeerpe/main/logo.png" alt="xeerpe for Gleam" width="140"></p>
 
 # xeerpe
 
-Gradients, effects, patterns and animations as CSS backgrounds for
-[Lustre](https://lustre.build), written in Gleam with [xeerpe](https://xeerpe.io).
+Gradients, effects, patterns and animations as CSS backgrounds, written in Gleam
+with [xeerpe](https://xeerpe.io).
 
 xeerpe is a JavaScript library that builds CSS backgrounds from a chain of calls
 (`.linearGradient(...).grain(...).breathe(...)`). This package lets you write that
-chain in Gleam and put the result on any Lustre element. It uses xeerpe's own
+chain in Gleam and put the result on an element. It uses xeerpe's own
 names and options, and carries a copy of xeerpe inside, so you don't need npm.
+
+It was designed and tested with [Lustre](https://lustre.build), and the examples use it. It doesn't
+depend on Lustre, though: it only produces CSS, so in principle it fits any framework or plain DOM code
+on the JavaScript target. Only Lustre has been tried.
 
 ```sh
 gleam add xeerpe
 ```
 
 ```gleam
+import lustre/attribute
 import lustre/element/html
 import xeerpe
-import xeerpe/lustre as xl
+import xeerpe/css
 import xeerpe/quick
 
 fn sky() {
@@ -29,19 +34,20 @@ fn sky() {
 }
 
 pub fn view() {
-  html.div([xl.attribute(sky())], [])
+  html.div([attribute.styles(css.properties(sky()))], [])
 }
 ```
 
-`sky()` only describes the background. `xl.attribute` turns it into a `style` attribute.
+`sky()` only describes the background. `css.properties` turns it into the CSS to put on an element.
 
 ## What is in it
 
 - `xeerpe` has everything xeerpe has: `linear_gradient`, `mesh_gradient`, `grain`, `dots`, `pulse`,
   `preset`, and so on.
 - `xeerpe/quick` has shorter versions of the common calls, like the ones above.
-- `xeerpe/lustre` puts a background on an element: `attribute`, and `text_attribute` for gradient text.
-  If the background animates, the CSS it needs is added to the page for you.
+- `xeerpe/css` turns a builder into CSS: `properties` (a list of `#(name, value)`, which is what Lustre's
+  `attribute.styles` takes), `text_properties` for gradient text, and `inline` for the text of a `style`
+  attribute. If the background animates, the CSS it needs is added to the page for you.
 - `xeerpe/colors` is xeerpe's color palette.
 
 `quick` covers the common cases. For all the options, use `xeerpe` directly. Names are
@@ -60,7 +66,7 @@ xeerpe.new()
 )
 ```
 
-A `Builder` is just a description. Nothing is computed until `xl.attribute` (or `to_style`), so you
+A `Builder` is just a description. Nothing is computed until `css.properties` (or `to_style`), so you
 can keep one in your model, compare two with `==`, and add to one without changing it.
 
 ## Which xeerpe version do I get?
@@ -106,19 +112,20 @@ Seen in the bundled version, <!--v-->0.0.19<!--/v-->:
 
 ## Demo
 
-`demo/` is a Lustre app showing every effect, option and color. It is also this project's site.
-To run it: `cd demo && gleam run -m lustre/dev start`. Add `#reference` to the address for the full list.
+`dev/` is a Lustre app showing every effect, option and color. It is also this project's site. To run it:
+`gleam run -m lustre/dev start xeerpe_dev`. Add `#reference` to the address for the full list.
+(Lustre is only a development dependency of this package.)
 
 ## Working on this package
 
 ```sh
-npm install   # installs xeerpe from npm; the tests compare this package against it
+npm install --prefix test/npm-xeerpe   # xeerpe from npm: the tests compare this package against it
 gleam test
 ```
 
 To bundle a new xeerpe release, run `scripts/update-xeerpe.sh [version]`. It installs the release,
 copies its file into `src/xeerpe_vendor/`, updates `bundled_version` and runs the tests. The tests
-fail if the bundled copy ever differs from the npm package.
+fail if the bundled copy ever differs from the npm package. `scripts/build-site.sh` builds the demo site into `dist/`.
 
 ## Credits
 
