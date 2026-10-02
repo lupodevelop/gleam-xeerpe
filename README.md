@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/lupodevelop/gleam-xeerpe/main/logo.png" alt="xeerpe for Gleam" width="140"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lupodevelop/gleam-xeerpe/83b8c6ded15fd46b01dbe44f149f64636dcc7caf/logo.png" alt="xeerpe for Gleam" width="140"></p>
 
 # xeerpe
 
