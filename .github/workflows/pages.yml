@@ -23,6 +23,7 @@ jobs:
         with:
           otp-version: "29"
           gleam-version: "1.18.1"
+          rebar3-version: latest
       - run: scripts/build-site.sh
       - uses: actions/upload-pages-artifact@v5
         with:
