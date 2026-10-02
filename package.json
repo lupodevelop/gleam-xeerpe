@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Test oracle only: the npm package the Gleam binding is checked against.",
+  "devDependencies": {
+    "xeerpe": "0.0.19"
+  }
+}

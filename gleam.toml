@@ -1,0 +1,18 @@
+name = "xeerpe"
+version = "0.1.0"
+description = "Chainable CSS backgrounds for Lustre: a Gleam binding for xeerpe, with xeerpe bundled."
+licences = ["MIT"]
+repository = { type = "github", user = "lupodevelop", repo = "xeerpe-lustre" }
+links = [
+  { title = "xeerpe", href = "https://xeerpe.io" },
+  { title = "xeerpe on GitHub", href = "https://github.com/nicolacentonze/xeerpe" },
+]
+gleam = ">= 1.11.0"
+target = "javascript"
+
+[dependencies]
+gleam_stdlib = ">= 1.0.5 and < 2.0.0"
+lustre = ">= 5.7.1 and < 6.0.0"
+
+[dev_dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"

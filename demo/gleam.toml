@@ -1,0 +1,19 @@
+name = "xeerpe_demo"
+version = "0.1.0"
+description = "Demo and project site for xeerpe."
+target = "javascript"
+
+[dependencies]
+gleam_stdlib = ">= 1.0.0 and < 2.0.0"
+lustre = ">= 5.7.1 and < 6.0.0"
+xeerpe = { path = ".." }
+
+[dev_dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+lustre_dev_tools = ">= 2.4.0 and < 3.0.0"
+
+[tools.lustre.html]
+title = "xeerpe for Gleam"
+links = [{ rel = "icon", href = "logo.png" }]
+meta = [{ name = "description", content = "Chainable CSS backgrounds for Lustre: a Gleam binding for xeerpe." }]
+stylesheets = [{ content = "body { margin: 0 }" }]
