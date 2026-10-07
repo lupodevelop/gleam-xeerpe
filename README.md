@@ -2,17 +2,10 @@
 
 # xeerpe
 
-Gradients, effects, patterns and animations as CSS backgrounds, written in Gleam
-with [xeerpe](https://xeerpe.io).
+CSS backgrounds in Gleam: gradients, patterns, effects, animations and a lot of presets.
+A binding for [xeerpe](https://xeerpe.io), with xeerpe bundled (no npm needed).
 
-xeerpe is a JavaScript library that builds CSS backgrounds from a chain of calls
-(`.linearGradient(...).grain(...).breathe(...)`). This package lets you write that
-chain in Gleam and put the result on an element. It uses xeerpe's own
-names and options, and carries a copy of xeerpe inside, so you don't need npm.
-
-It was designed and tested with [Lustre](https://lustre.build), and the examples use it. It doesn't
-depend on Lustre, though: it only produces CSS, so in principle it fits any framework or plain DOM code
-on the JavaScript target. Only Lustre has been tried.
+[Demo](https://lupodevelop.github.io/gleam-xeerpe/) · [Docs](https://hexdocs.pm/xeerpe/) · [xeerpe.io](https://xeerpe.io)
 
 ```sh
 gleam add xeerpe
@@ -38,21 +31,21 @@ pub fn view() {
 }
 ```
 
-`sky()` only describes the background. `css.properties` turns it into the CSS to put on an element.
+Made for [Lustre](https://lustre.build). It only produces CSS, so it works with anything on the
+JavaScript target.
 
-## What is in it
+## Modules
 
-- `xeerpe` has everything xeerpe has: `linear_gradient`, `mesh_gradient`, `grain`, `dots`, `pulse`,
-  `preset`, and so on.
-- `xeerpe/quick` has shorter versions of the common calls, like the ones above.
-- `xeerpe/css` turns a builder into CSS: `properties` (a list of `#(name, value)`, which is what Lustre's
-  `attribute.styles` takes), `text_properties` for gradient text, and `inline` for the text of a `style`
-  attribute. If the background animates, the CSS it needs is added to the page for you.
-- `xeerpe/colors` is xeerpe's color palette.
+- `xeerpe`: every xeerpe call, same names in snake_case (`linearGradient` → `linear_gradient`).
+- `xeerpe/quick`: short versions of the common calls.
+- `xeerpe/css`: `properties` for `attribute.styles`, `text_properties` for gradient text, `inline`
+  for a `style` string. Keyframes for animations are added to the page automatically.
+- `xeerpe/colors`: xeerpe's palette.
 
-`quick` covers the common cases. For all the options, use `xeerpe` directly. Names are
-xeerpe's, in snake_case (`linearGradient` is `linear_gradient`). Options are records, and optional
-fields are `Option`s. Each options type has a default to start from:
+## All the options
+
+`quick` takes the usual arguments. For everything else, call `xeerpe` with an options record.
+Every record has a default to start from:
 
 ```gleam
 xeerpe.new()
@@ -66,70 +59,68 @@ xeerpe.new()
 )
 ```
 
-A `Builder` is just a description. Nothing is computed until `css.properties` (or `to_style`), so you
-can keep one in your model, compare two with `==`, and add to one without changing it.
+## Presets
 
-## Which xeerpe version do I get?
-
-The copy of xeerpe inside this package is one fixed version. `xeerpe.bundled_version` tells you
-which. It is only a label: nothing reads it, and it doesn't change by itself.
-
-If xeerpe publishes a newer version and you want it before this package is updated, you can give
-the package your own copy. In your project:
-
-1. Install that version from npm: `npm install xeerpe@<version>`.
-2. Create `src/my_xeerpe.mjs`, a small file that hands xeerpe over to Gleam:
-   ```js
-   import * as xeerpe from "xeerpe";
-   export const module = () => xeerpe;
-   ```
-3. Tell the package to use it, once, when your app starts and before anything is drawn:
-   ```gleam
-   @external(javascript, "./my_xeerpe.mjs", "module")
-   fn my_xeerpe() -> Dynamic
-
-   pub fn main() {
-     let assert Ok(Nil) = xeerpe.use_module(my_xeerpe())
-     // then start your app
-   }
-   ```
-
-From then on the package runs your xeerpe instead of its own. `xeerpe.use_bundled()` switches back.
-
-What this changes: the behaviour of xeerpe, such as bug fixes and new presets. What it doesn't change:
-the Gleam functions and options, which match `bundled_version`. If a newer xeerpe adds a method or an
-option, you can't call it from Gleam until this package is updated.
-
-## Things xeerpe does
-
-Seen in the bundled version, <!--v-->0.0.19<!--/v-->:
-
-- `breathe`, `aurora` and `liquid` resize every background layer, so they stretch `dots` and `grid`.
-- The `direction` option of an animation is only used by `pulse` and `aurora`.
-- `DotsOptions.style` and `GrainOptions.animated` do nothing.
-- Gradients repeat by default. While one animates you may see a thin line along an edge; add
-  `background-repeat: no-repeat` to the element to remove it.
-
-## Demo
-
-`dev/` is a Lustre app showing every effect, option and color. It is also this project's site. To run it:
-`gleam run -m lustre/dev start xeerpe_dev`. 
-
-## Working on this package
-
-```sh
-npm install --prefix test/npm-xeerpe   # xeerpe from npm: the tests compare this package against it
-gleam test
+```gleam
+let assert Ok(gold) = xeerpe.preset("gold")
+gold |> quick.grain(2.0)
 ```
 
-To bundle a new xeerpe release, run `scripts/update-xeerpe.sh [version]`. It installs the release,
-copies its file into `src/xeerpe_vendor/`, updates `bundled_version` and runs the tests. The tests
-fail if the bundled copy ever differs from the npm package. `scripts/build-site.sh` builds the demo site into `dist/`.
+`xeerpe.preset_names()` lists all, `xeerpe.preset_categories()` groups them.
+
+## Builders are data
+
+A `Builder` is just a list of calls. Nothing runs until `css.properties`. Keep one in your model,
+compare with `==`, extend without changing the original.
+
+## Using another xeerpe
+
+The bundled xeerpe is version `xeerpe.bundled_version`. To run a different one:
+
+```sh
+npm install xeerpe@<version>
+```
+
+```js
+// src/my_xeerpe.mjs
+import * as xeerpe from "xeerpe";
+export const module = () => xeerpe;
+```
+
+```gleam
+@external(javascript, "./my_xeerpe.mjs", "module")
+fn my_xeerpe() -> Dynamic
+
+pub fn main() {
+  let assert Ok(Nil) = xeerpe.use_module(my_xeerpe())
+  // start your app
+}
+```
+
+This changes behaviour only. The Gleam API stays the one of the bundled version.
+`xeerpe.use_bundled()` switches back.
+
+## Quirks
+
+In xeerpe <!--v-->1.0.2<!--/v-->:
+
+- `breathe`, `aurora` and `liquid` resize every layer, so patterns stretch.
+- Animation `direction` only works with `pulse` and `aurora`.
+- `DotsOptions.style` and `GrainOptions.animated` do nothing.
+- An animated gradient may show a thin line on one edge. Add `background-repeat: no-repeat`.
+
+## Development
+
+```sh
+npm install --prefix test/npm-xeerpe   # xeerpe from npm, the tests compare against it
+gleam test
+gleam run -m lustre/dev start xeerpe_dev   # demo, add #reference for every option
+scripts/update-xeerpe.sh [version]         # bundle a new xeerpe release
+scripts/build-site.sh                      # demo site into dist/
+```
 
 ## Credits
 
-Everything that builds the backgrounds (the builder, effects, presets, palette and docs) is
-[xeerpe](https://github.com/nicolacentonze/xeerpe) by Nicola Centonze. This package is a Gleam
-wrapper around it and includes its `index.mjs` under its MIT license (see `LICENSE`). The pink logo
-is a parody of xeerpe's green one (Gleam is pink, so it got the transformation) and is not the
-official logo.
+[xeerpe](https://github.com/nicolacentonze/xeerpe) by Nicola Centonze does all the work; this is a
+Gleam wrapper around it, bundling its `index.mjs` under MIT. The pink logo is a parody of xeerpe's
+green one, not the official one.

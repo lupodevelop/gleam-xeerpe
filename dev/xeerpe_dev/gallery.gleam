@@ -22,7 +22,22 @@ pub type Card {
 
 pub const groups = [
   "Gradients", "Effects", "Filters", "Patterns", "Animations", "Presets",
+  "Examples",
 ]
+
+/// A night sky for the stars and rays tiles.
+pub fn night() -> xeerpe.Builder {
+  xeerpe.new()
+  |> xeerpe.radial_gradient(
+    xeerpe.RadialGradientOptions(
+      ..xeerpe.radial_gradient_options,
+      from: Some("#1b2559"),
+      to: Some("#050816"),
+      position: Some("30% 20%"),
+      color_to_position: Some("90%"),
+    ),
+  )
+}
 
 pub fn sky() -> xeerpe.Builder {
   q.linear(xeerpe.new(), "#FFB347", "#4A1942", deg: 170.0)
@@ -144,6 +159,30 @@ pub fn cards() -> List(Card) {
       Fill(q.grid(dusk(), "#ffffff", "24px", 0.2)),
     ),
     Card(
+      "Patterns",
+      "stars",
+      "night |> quick.stars(\"#ffffff\", \"160px\", 30, 4)",
+      Fill(q.stars(night(), "#ffffff", "160px", 30, 4)),
+    ),
+    Card(
+      "Patterns",
+      "rays",
+      "sun |> quick.rays(\"#e6c35c\", 18, \"50% 115%\", 0.12)",
+      Fill(
+        xeerpe.new()
+        |> xeerpe.radial_gradient(
+          xeerpe.RadialGradientOptions(
+            ..rg,
+            from: Some("#e6c35c"),
+            to: Some("#15130e"),
+            position: Some("50% 115%"),
+            color_to_position: Some("70%"),
+          ),
+        )
+        |> q.rays("#e6c35c", 18, "50% 115%", 0.12),
+      ),
+    ),
+    Card(
       "Animations",
       "pulse",
       "sky |> quick.pulse(\"1.2s\")",
@@ -255,17 +294,166 @@ pub fn cards() -> List(Card) {
         "5s",
       )),
     ),
+    ..list.append(preset_cards(), example_cards())
+  ]
+}
+
+/// The first preset of every category; `xeerpe.preset_names` has them all.
+fn preset_cards() -> List(Card) {
+  xeerpe.preset_categories()
+  |> list.filter_map(fn(c) {
+    case c.1 {
+      [name, ..] ->
+        Ok(Card(
+          "Presets",
+          c.0 <> " · " <> name,
+          "xeerpe.preset(\"" <> name <> "\")",
+          Fill(preset(name)),
+        ))
+      [] -> Error(Nil)
+    }
+  })
+}
+
+/// Small UI pieces (the ones xeerpe's docs use), each with the Gleam that makes it.
+fn example_cards() -> List(Card) {
+  let g = xeerpe.glow_options
+  [
     Card(
-      "Presets",
-      "sunrise",
-      "xeerpe.preset(\"sunrise\")",
-      Fill(preset("sunrise")),
+      "Examples",
+      "Neon button",
+      "xeerpe.new()
+|> quick.linear(\"#06080f\", \"#0b1020\", deg: 180.0)
+|> quick.glow(\"#22d3ee\", \"18px\")
+|> xeerpe.glow(GlowOptions(..glow_options, type_: Some(Inner), color: Some(\"#22d3ee\"), amount: Some(\"12px\")))",
+      On(
+        dusk(),
+        q.linear(xeerpe.new(), "#06080f", "#0b1020", deg: 180.0)
+          |> q.glow("#22d3ee", "18px")
+          |> xeerpe.glow(
+            xeerpe.GlowOptions(
+              ..g,
+              type_: Some(xeerpe.Inner),
+              color: Some("#22d3ee"),
+              amount: Some("12px"),
+            ),
+          ),
+      ),
     ),
     Card(
-      "Presets",
-      "northern-lights",
-      "xeerpe.preset(\"northern-lights\")",
-      Fill(preset("northern-lights")),
+      "Examples",
+      "Avatar ring",
+      "xeerpe.new()
+|> xeerpe.conic_gradient(ConicGradientOptions(..conic_gradient_options, colors: Some([Color(\"#5EB847\"), Color(\"#CAD328\"), Color(\"#22d3ee\"), Color(\"#7a5cff\"), Color(\"#5EB847\")])))
+|> quick.rotate(\"4s\")",
+      On(
+        dusk(),
+        xeerpe.new()
+          |> xeerpe.conic_gradient(
+            xeerpe.ConicGradientOptions(
+              ..xeerpe.conic_gradient_options,
+              colors: Some(list.map(
+                ["#5EB847", "#CAD328", "#22d3ee", "#7a5cff", "#5EB847"],
+                xeerpe.Color,
+              )),
+            ),
+          )
+          |> q.rotate("4s"),
+      ),
+    ),
+    Card(
+      "Examples",
+      "Loading skeleton",
+      "xeerpe.new()
+|> xeerpe.linear_gradient(LinearGradientOptions(..linear_gradient_options, colors: Some([Color(\"#1c2620\"), Color(\"#2f3d34\"), Color(\"#1c2620\")]), angle: Some(Deg(90.0)), background_size: Some(\"200% 100%\")))
+|> quick.shimmer(\"1.6s\")",
+      On(
+        dusk(),
+        xeerpe.new()
+          |> xeerpe.linear_gradient(
+            xeerpe.LinearGradientOptions(
+              ..lg,
+              colors: Some(list.map(
+                ["#1c2620", "#2f3d34", "#1c2620"],
+                xeerpe.Color,
+              )),
+              angle: Some(xeerpe.Deg(90.0)),
+              background_size: Some("200% 100%"),
+            ),
+          )
+          |> q.shimmer("1.6s"),
+      ),
+    ),
+    Card(
+      "Examples",
+      "Spotlight card",
+      "xeerpe.new()
+|> xeerpe.radial_gradient(RadialGradientOptions(..radial_gradient_options, from: Some(\"rgba(94,184,71,0.35)\"), to: Some(\"transparent\"), position: Some(\"0% 0%\"), color_to_position: Some(\"70%\")))
+|> quick.linear(\"#0c140e\", \"#060906\", deg: 180.0)
+|> xeerpe.dots(DotsOptions(..dots_options, color: Some(\"#5EB847\"), size: Some(\"18px\"), opacity: Some(0.18)))
+|> xeerpe.glow(GlowOptions(..glow_options, type_: Some(Inner), color: Some(\"rgba(94,184,71,0.35)\"), amount: Some(\"30px\")))",
+      On(
+        dusk(),
+        xeerpe.new()
+          |> xeerpe.radial_gradient(
+            xeerpe.RadialGradientOptions(
+              ..rg,
+              from: Some("rgba(94,184,71,0.35)"),
+              to: Some("transparent"),
+              position: Some("0% 0%"),
+              color_to_position: Some("70%"),
+            ),
+          )
+          |> q.linear("#0c140e", "#060906", deg: 180.0)
+          |> xeerpe.dots(
+            xeerpe.DotsOptions(
+              ..xeerpe.dots_options,
+              color: Some("#5EB847"),
+              size: Some("18px"),
+              opacity: Some(0.18),
+            ),
+          )
+          |> xeerpe.glow(
+            xeerpe.GlowOptions(
+              ..g,
+              type_: Some(xeerpe.Inner),
+              color: Some("rgba(94,184,71,0.35)"),
+              amount: Some("30px"),
+            ),
+          ),
+      ),
+    ),
+    Card(
+      "Examples",
+      "Frosted glass",
+      "xeerpe.new()
+|> quick.linear(\"rgba(255,255,255,0.22)\", \"rgba(255,255,255,0.06)\", deg: 180.0)
+|> quick.backdrop_blur(\"14px\")",
+      On(
+        preset("northern-lights"),
+        q.linear(
+          xeerpe.new(),
+          "rgba(255,255,255,0.22)",
+          "rgba(255,255,255,0.06)",
+          deg: 180.0,
+        )
+          |> q.backdrop_blur("14px"),
+      ),
+    ),
+    Card(
+      "Examples",
+      "Gradient text",
+      "xeerpe.new()
+|> quick.linear_colors([\"#5EB847\", \"#CAD328\", \"#ffd166\"], deg: 90.0)
+|> css.text_properties",
+      Text(
+        q.linear_colors(
+          xeerpe.new(),
+          ["#5EB847", "#CAD328", "#ffd166"],
+          deg: 90.0,
+        ),
+        "xeerpe",
+      ),
     ),
   ]
 }
@@ -351,11 +539,26 @@ pub fn reference() -> List(#(String, List(Card))) {
     #("Blur", blur_tiles()),
     #("Dots", dots_tiles()),
     #("Grid", grid_tiles()),
+    #("Stars", stars_tiles()),
+    #("Rays", rays_tiles()),
     #("Animation options", animation_option_tiles()),
     #("Generic methods", generic_tiles()),
     #("Text fill", text_tiles()),
-    #("Colors", color_tiles()),
+    ..list.append(preset_tiles(), [#("Colors", color_tiles())])
   ]
+}
+
+/// Every preset, one section per category.
+fn preset_tiles() -> List(#(String, List(Card))) {
+  xeerpe.preset_categories()
+  |> list.map(fn(c) {
+    #(
+      "Presets · " <> c.0,
+      list.map(c.1, fn(name) {
+        fill("presets", name, "xeerpe.preset(\"" <> name <> "\")", preset(name))
+      }),
+    )
+  })
 }
 
 fn linear_direction() -> List(Card) {
@@ -904,6 +1107,137 @@ fn dots_tiles() -> List(Card) {
       "background_size",
       "background_size: Some(\"44px 44px\")",
       dd(xeerpe.DotsOptions(..base, background_size: Some("44px 44px"))),
+    ),
+  ]
+}
+
+fn stars_tiles() -> List(Card) {
+  let st = xeerpe.stars_options
+  let on_night = fn(o) { night() |> xeerpe.stars(o) }
+  [
+    fill("stars", "defaults", "stars_options", on_night(st)),
+    fill(
+      "stars",
+      "count",
+      "count: Some(60)",
+      on_night(xeerpe.StarsOptions(..st, count: Some(60))),
+    ),
+    fill(
+      "stars",
+      "size (tile)",
+      "size: Some(\"80px\")",
+      on_night(xeerpe.StarsOptions(..st, size: Some("80px"))),
+    ),
+    fill(
+      "stars",
+      "stroke_width",
+      "stroke_width: Some(\"3px\")",
+      on_night(xeerpe.StarsOptions(..st, stroke_width: Some("3px"))),
+    ),
+    fill(
+      "stars",
+      "seed",
+      "seed: Some(9)",
+      on_night(xeerpe.StarsOptions(..st, seed: Some(9))),
+    ),
+    fill(
+      "stars",
+      "color / opacity",
+      "color: Some(saffron), opacity: Some(0.6)",
+      on_night(
+        xeerpe.StarsOptions(
+          ..st,
+          color: Some(colors.saffron),
+          opacity: Some(0.6),
+        ),
+      ),
+    ),
+    fill(
+      "stars",
+      "two layers",
+      "stars(small, seed: 4) |> stars(big gold, seed: 9)",
+      night()
+        |> xeerpe.stars(
+          xeerpe.StarsOptions(
+            ..st,
+            size: Some("160px"),
+            count: Some(30),
+            stroke_width: Some("1px"),
+            seed: Some(4),
+          ),
+        )
+        |> xeerpe.stars(
+          xeerpe.StarsOptions(
+            ..st,
+            color: Some("#ffe8b0"),
+            size: Some("310px"),
+            count: Some(8),
+            stroke_width: Some("2px"),
+            seed: Some(9),
+          ),
+        ),
+    ),
+  ]
+}
+
+fn rays_tiles() -> List(Card) {
+  let r = xeerpe.rays_options
+  let sun =
+    xeerpe.new()
+    |> xeerpe.radial_gradient(
+      xeerpe.RadialGradientOptions(
+        ..rg,
+        from: Some("#fde68a"),
+        to: Some("#f97316"),
+      ),
+    )
+  let on_sun = fn(o) { sun |> xeerpe.rays(o) }
+  let base =
+    xeerpe.RaysOptions(..r, color: Some("#ffffff"), opacity: Some(0.25))
+  [
+    fill("rays", "defaults", "rays_options", on_sun(r)),
+    fill(
+      "rays",
+      "count",
+      "count: Some(24)",
+      on_sun(xeerpe.RaysOptions(..base, count: Some(24))),
+    ),
+    fill(
+      "rays",
+      "position",
+      "position: Some(\"50% 115%\")",
+      on_sun(xeerpe.RaysOptions(..base, position: Some("50% 115%"))),
+    ),
+    fill(
+      "rays",
+      "angle",
+      "angle: Some(Deg(15.0))",
+      on_sun(xeerpe.RaysOptions(..base, angle: Some(xeerpe.Deg(15.0)))),
+    ),
+    fill(
+      "rays",
+      "color / opacity",
+      "color: Some(crimson), opacity: Some(0.5)",
+      on_sun(
+        xeerpe.RaysOptions(
+          ..base,
+          color: Some(colors.crimson),
+          opacity: Some(0.5),
+        ),
+      ),
+    ),
+    fill(
+      "rays",
+      "background",
+      "background: Some(\"#15130e\")",
+      xeerpe.new()
+        |> xeerpe.rays(
+          xeerpe.RaysOptions(
+            ..base,
+            color: Some("#e6c35c"),
+            background: Some("#15130e"),
+          ),
+        ),
     ),
   ]
 }

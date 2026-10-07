@@ -168,13 +168,19 @@ fn random_extras() -> List(Step) {
     #("quick.grid(\"#ffffff\", \"24px\", 0.2)", fn(x) {
       q.grid(x, "#ffffff", "24px", 0.2)
     }),
+    #("quick.stars(\"#ffffff\", \"160px\", 30, 4)", fn(x) {
+      q.stars(x, "#ffffff", "160px", 30, 4)
+    }),
+    #("quick.rays(\"#ffffff\", 12, \"center\", 0.2)", fn(x) {
+      q.rays(x, "#ffffff", 12, "center", 0.2)
+    }),
   ]
   let chosen = pool |> list.shuffle |> list.take(int.random(4))
-  // breathe/aurora/liquid resize every layer and stretch dots/grid,
+  // breathe/aurora/liquid resize every layer and stretch patterns,
   // so a patterned chain only gets the others.
   let patterned =
     list.any(chosen, fn(s) {
-      string.contains(s.0, "dots") || string.contains(s.0, "grid")
+      list.any(["dots", "grid", "stars", "rays"], string.contains(s.0, _))
     })
   let safe: List(Step) = [
     #("quick.pulse(\"1.5s\")", fn(x) { q.pulse(x, "1.5s") }),
@@ -278,7 +284,10 @@ fn view(model: Model) -> Element(Msg) {
     })
   let footer =
     html.footer([], [
-      html.text("A Gleam wrapper around "),
+      html.a([attribute.href("https://github.com/lupodevelop/gleam-xeerpe")], [
+        html.text("xeerpe for Gleam"),
+      ]),
+      html.text(" is a Gleam wrapper around "),
       html.a([attribute.href("https://github.com/nicolacentonze/xeerpe")], [
         html.text("xeerpe"),
       ]),
@@ -321,6 +330,12 @@ fn view(model: Model) -> Element(Msg) {
       ]),
       html.code([class("install")], [html.text("gleam add xeerpe")]),
       html.nav([], [
+        html.a([attribute.href("https://github.com/lupodevelop/gleam-xeerpe")], [
+          html.text("GitHub"),
+        ]),
+        html.a([attribute.href("https://hexdocs.pm/xeerpe/")], [
+          html.text("Docs"),
+        ]),
         html.a([attribute.href("https://xeerpe.io")], [html.text("xeerpe.io")]),
         html.a([attribute.href("https://github.com/nicolacentonze/xeerpe")], [
           html.text("xeerpe on GitHub"),

@@ -12,7 +12,8 @@ import xeerpe.{
   type Builder, AnimationOptions, BackdropBlur, BlurOptions, Calc, Color, Count,
   DotsOptions, GlowOptions, GrainOptions, GridOptions, Infinite, Inner,
   LinearGradientOptions, NoiseOptions, Percent, PositionedColor,
-  RadialGradientOptions, ToTopRight, Turbulence, Unit, VignetteOptions,
+  RadialGradientOptions, RaysOptions, StarsOptions, ToTopRight, Turbulence, Unit,
+  VignetteOptions,
 }
 import xeerpe/css
 import xeerpe/quick
@@ -614,8 +615,120 @@ pub fn every_filter_and_pattern_field_test() {
     Some("3px"),
     Some("40px 40px"),
   ))
+  |> xeerpe.stars(StarsOptions(
+    Some("#ffe8b0"),
+    Some("#000000"),
+    Some("160px"),
+    Some(0.8),
+    Some("2px"),
+    Some("40px 40px"),
+    Some(30),
+    Some(4),
+  ))
+  |> xeerpe.rays(RaysOptions(
+    Some("#e6c35c"),
+    Some("#000000"),
+    Some("300px"),
+    Some(0.12),
+    Some("2px"),
+    Some("40px 40px"),
+    Some(18),
+    Some("50% 115%"),
+    Some(xeerpe.Deg(270.0)),
+  ))
+  |> xeerpe.stars(xeerpe.stars_options)
+  |> xeerpe.rays(xeerpe.rays_options)
+  |> xeerpe.pattern(
+    xeerpe.Stars,
+    xeerpe.StarsPattern(StarsOptions(..xeerpe.stars_options, seed: Some(9))),
+  )
+  |> xeerpe.pattern(
+    xeerpe.Rays,
+    xeerpe.RaysPattern(RaysOptions(..xeerpe.rays_options, count: Some(6))),
+  )
   |> xeerpe.pattern(xeerpe.Grid, xeerpe.GridPattern(xeerpe.grid_options))
   |> same("ks_patterns", _)
+}
+
+// The stars and rays examples from xeerpe.io/guide/patterns.
+pub fn site_patterns_test() {
+  let st = xeerpe.stars_options
+  xeerpe.new()
+  |> xeerpe.linear_gradient(
+    LinearGradientOptions(
+      ..lg,
+      from: Some("#0b1026"),
+      to: Some("#2a1f5c"),
+      direction: Some(xeerpe.ToBottom),
+    ),
+  )
+  |> xeerpe.stars(
+    StarsOptions(
+      ..st,
+      size: Some("160px"),
+      count: Some(30),
+      stroke_width: Some("1px"),
+      seed: Some(4),
+    ),
+  )
+  |> xeerpe.stars(
+    StarsOptions(
+      ..st,
+      color: Some("#ffe8b0"),
+      size: Some("310px"),
+      count: Some(8),
+      stroke_width: Some("2px"),
+      seed: Some(9),
+    ),
+  )
+  |> same("site_stars", _)
+
+  xeerpe.new()
+  |> xeerpe.radial_gradient(
+    RadialGradientOptions(
+      ..rg,
+      from: Some("#e6c35c"),
+      to: Some("#15130e"),
+      position: Some("50% 115%"),
+      color_to_position: Some("70%"),
+    ),
+  )
+  |> xeerpe.rays(
+    RaysOptions(
+      ..xeerpe.rays_options,
+      color: Some("#e6c35c"),
+      count: Some(18),
+      position: Some("50% 115%"),
+      angle: Some(xeerpe.Deg(270.0)),
+      opacity: Some(0.12),
+    ),
+  )
+  |> xeerpe.vignette(
+    VignetteOptions(
+      ..xeerpe.vignette_options,
+      intensity: Some(0.5),
+      spread: Some(0.5),
+    ),
+  )
+  |> same("site_rays", _)
+}
+
+@external(javascript, "./reference.mjs", "npm_preset_names")
+fn npm_preset_names() -> List(String)
+
+@external(javascript, "./reference.mjs", "npm_preset_categories")
+fn npm_preset_categories() -> List(#(String, List(String)))
+
+pub fn preset_names_test() {
+  let names = xeerpe.preset_names()
+  assert names == npm_preset_names()
+  assert list.length(names) > 200
+  assert list.contains(names, "gold")
+  let assert Ok(_) = xeerpe.preset("gold")
+
+  let categories = xeerpe.preset_categories()
+  assert categories == npm_preset_categories()
+  assert list.flat_map(categories, fn(c) { c.1 }) == names
 }
 
 pub fn every_animation_variant_test() {

@@ -46,7 +46,23 @@ const scenarios = {
     new Builder()
       .dots({ color: "#ffffff", background: "#000000", size: "12px", spacing: "30px", style: "ring", opacity: 0.4, strokeWidth: "2px", backgroundSize: "40px 40px" })
       .grid({ color: "#ff0000", background: "#000000", size: "16px", opacity: 0.3, strokeWidth: "3px", backgroundSize: "40px 40px" })
+      .stars({ color: "#ffe8b0", background: "#000000", size: "160px", opacity: 0.8, strokeWidth: "2px", backgroundSize: "40px 40px", count: 30, seed: 4 })
+      .rays({ color: "#e6c35c", background: "#000000", size: "300px", opacity: 0.12, strokeWidth: "2px", backgroundSize: "40px 40px", count: 18, position: "50% 115%", angle: "270deg" })
+      .stars().rays()
+      .pattern("stars", { seed: 9 }).pattern("rays", { count: 6 })
       .pattern("grid", {}).toStyle(),
+  site_stars: () =>
+    new Builder()
+      .linearGradient({ from: "#0b1026", to: "#2a1f5c", direction: "to bottom" })
+      .stars({ size: "160px", count: 30, strokeWidth: "1px", seed: 4 })
+      .stars({ color: "#ffe8b0", size: "310px", count: 8, strokeWidth: "2px", seed: 9 })
+      .toStyle(),
+  site_rays: () =>
+    new Builder()
+      .radialGradient({ from: "#e6c35c", to: "#15130e", position: "50% 115%", colorToPosition: "70%" })
+      .rays({ color: "#e6c35c", count: 18, position: "50% 115%", angle: "270deg", opacity: 0.12 })
+      .vignette({ intensity: 0.5, spread: 0.5 })
+      .toStyle(),
   ks_animations: () => {
     const b = new Builder();
     for (const t of ["pulse", "rotate", "breathe", "aurora", "shimmer", "liquid", "plasma", "float", "drift"]) b.animation(t, { duration: "2s" });
@@ -92,6 +108,8 @@ export const reference = (name) => out(scenarios[name]());
 
 // the npm module, and a fake one to show the override is used
 export const npm_module = () => npm;
+export const npm_preset_names = () => toList(npm.presetNames);
+export const npm_preset_categories = () => toList(Object.entries(npm.presetCategories).map(([k, v]) => [k, toList(v)]));
 export const fake_module = () => ({
   Builder: class extends Builder {
     toStyle() { return { marker: "override" }; }

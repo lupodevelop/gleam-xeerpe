@@ -269,6 +269,8 @@ pub type FilterOptions =
 pub type PatternType {
   Dots
   Grid
+  Stars
+  Rays
 }
 
 /// Includes the fields xeerpe inherits from its base pattern options.
@@ -309,9 +311,64 @@ pub type GridOptions {
 
 pub const grid_options = GridOptions(None, None, None, None, None, None)
 
+/// A field of small stars on a repeating tile. The layout is pseudo-random
+/// but deterministic: `seed` picks it, `count` is the stars per tile.
+pub type StarsOptions {
+  StarsOptions(
+    color: Option(String),
+    background: Option(String),
+    size: Option(String),
+    opacity: Option(Float),
+    stroke_width: Option(String),
+    background_size: Option(String),
+    count: Option(Int),
+    seed: Option(Int),
+  )
+}
+
+pub const stars_options = StarsOptions(
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+)
+
+/// Rays radiating from `position`, like a sunburst. `angle` rotates them.
+pub type RaysOptions {
+  RaysOptions(
+    color: Option(String),
+    background: Option(String),
+    size: Option(String),
+    opacity: Option(Float),
+    stroke_width: Option(String),
+    background_size: Option(String),
+    count: Option(Int),
+    position: Option(String),
+    angle: Option(LinearGradientAngle),
+  )
+}
+
+pub const rays_options = RaysOptions(
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+  None,
+)
+
 pub type PatternOptions {
   DotsPattern(DotsOptions)
   GridPattern(GridOptions)
+  StarsPattern(StarsOptions)
+  RaysPattern(RaysOptions)
 }
 
 // -- models/animation --
@@ -411,6 +468,8 @@ pub type Layer {
   BlurCall(BlurOptions)
   DotsCall(DotsOptions)
   GridCall(GridOptions)
+  StarsCall(StarsOptions)
+  RaysCall(RaysOptions)
   PulseCall(AnimationOptions)
   RotateCall(AnimationOptions)
   BreatheCall(AnimationOptions)
@@ -439,7 +498,7 @@ pub fn new() -> Builder {
 }
 
 /// `new Preset(name)`. An unknown name is an `Error` instead of an exception.
-/// The bundled xeerpe has `"sunrise"` and `"northern-lights"`.
+/// `preset_names` lists the names; the bundled xeerpe has more than 200.
 pub fn preset(name: String) -> Result(Builder, String) {
   case preset_exists(name) {
     True -> Ok(Builder(Some(name), []))
@@ -450,9 +509,18 @@ pub fn preset(name: String) -> Result(Builder, String) {
 @external(javascript, "./xeerpe_ffi.mjs", "preset_exists")
 fn preset_exists(name: String) -> Bool
 
+/// xeerpe's `presetNames`: every preset the xeerpe in use knows, in its order.
+@external(javascript, "./xeerpe_ffi.mjs", "preset_names")
+pub fn preset_names() -> List(String)
+
+/// xeerpe's `presetCategories`: `#(category, names)` pairs, like
+/// `#("metals", ["gold", "silver", ...])`.
+@external(javascript, "./xeerpe_ffi.mjs", "preset_categories")
+pub fn preset_categories() -> List(#(String, List(String)))
+
 /// The version of the xeerpe copy inside this package. Only a label: the code does
 /// not read it, and `scripts/update-xeerpe.sh` keeps it up to date.
-pub const bundled_version = "0.0.19"
+pub const bundled_version = "1.0.2"
 
 /// Use another xeerpe instead of the bundled one, for example a newer npm release.
 /// Pass the module (it needs `Builder` and `Preset`) once, when the app starts.
@@ -569,6 +637,14 @@ pub fn grid(b: Builder, options: GridOptions) -> Builder {
   add(b, GridCall(options))
 }
 
+pub fn stars(b: Builder, options: StarsOptions) -> Builder {
+  add(b, StarsCall(options))
+}
+
+pub fn rays(b: Builder, options: RaysOptions) -> Builder {
+  add(b, RaysCall(options))
+}
+
 pub fn pulse(b: Builder, options: AnimationOptions) -> Builder {
   add(b, PulseCall(options))
 }
@@ -650,6 +726,8 @@ fn call(layer: Layer) -> #(String, List(Dynamic)) {
     BlurCall(o) -> #("blur", [blur_opts(o)])
     DotsCall(o) -> #("dots", [dots_opts(o)])
     GridCall(o) -> #("grid", [grid_opts(o)])
+    StarsCall(o) -> #("stars", [stars_opts(o)])
+    RaysCall(o) -> #("rays", [rays_opts(o)])
     PulseCall(o) -> #("pulse", [animation_opts(o)])
     RotateCall(o) -> #("rotate", [animation_opts(o)])
     BreatheCall(o) -> #("breathe", [animation_opts(o)])
@@ -684,6 +762,8 @@ fn pattern_name(t: PatternType) -> String {
   case t {
     Dots -> "dots"
     Grid -> "grid"
+    Stars -> "stars"
+    Rays -> "rays"
   }
 }
 
@@ -720,6 +800,10 @@ fn str(v: Option(String)) -> Option(Dynamic) {
 
 fn flt(v: Option(Float)) -> Option(Dynamic) {
   option.map(v, dynamic.float)
+}
+
+fn int(v: Option(Int)) -> Option(Dynamic) {
+  option.map(v, dynamic.int)
 }
 
 fn req(v: String) -> Option(Dynamic) {
@@ -971,10 +1055,39 @@ fn grid_opts(o: GridOptions) -> Dynamic {
   ])
 }
 
+fn stars_opts(o: StarsOptions) -> Dynamic {
+  obj([
+    #("color", str(o.color)),
+    #("background", str(o.background)),
+    #("size", str(o.size)),
+    #("opacity", flt(o.opacity)),
+    #("strokeWidth", str(o.stroke_width)),
+    #("backgroundSize", str(o.background_size)),
+    #("count", int(o.count)),
+    #("seed", int(o.seed)),
+  ])
+}
+
+fn rays_opts(o: RaysOptions) -> Dynamic {
+  obj([
+    #("color", str(o.color)),
+    #("background", str(o.background)),
+    #("size", str(o.size)),
+    #("opacity", flt(o.opacity)),
+    #("strokeWidth", str(o.stroke_width)),
+    #("backgroundSize", str(o.background_size)),
+    #("count", int(o.count)),
+    #("position", str(o.position)),
+    #("angle", option.map(o.angle, fn(a) { dynamic.string(angle_str(a)) })),
+  ])
+}
+
 fn pattern_options(o: PatternOptions) -> Dynamic {
   case o {
     DotsPattern(x) -> dots_opts(x)
     GridPattern(x) -> grid_opts(x)
+    StarsPattern(x) -> stars_opts(x)
+    RaysPattern(x) -> rays_opts(x)
   }
 }
 

@@ -28,6 +28,11 @@ export const preset_exists = (name) => {
   }
 };
 
+// presetNames / presetCategories arrived in xeerpe 1.0; older modules get [].
+export const preset_names = () => toList(impl.presetNames ?? []);
+export const preset_categories = () =>
+  toList(Object.entries(impl.presetCategories ?? {}).map(([k, v]) => [k, toList(v)]));
+
 // Gleam lists to arrays, at any depth inside plain objects.
 const toArg = (a) =>
   a?.toArray

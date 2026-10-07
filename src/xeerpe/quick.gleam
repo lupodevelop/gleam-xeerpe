@@ -175,6 +175,46 @@ pub fn grid(
   )
 }
 
+/// Stars on a tile of `size`; `count` per tile, `seed` picks the layout.
+pub fn stars(
+  b: Builder,
+  color: String,
+  size: String,
+  count: Int,
+  seed: Int,
+) -> Builder {
+  xeerpe.stars(
+    b,
+    xeerpe.StarsOptions(
+      ..xeerpe.stars_options,
+      color: Some(color),
+      size: Some(size),
+      count: Some(count),
+      seed: Some(seed),
+    ),
+  )
+}
+
+/// `count` rays from `position` (CSS position syntax, like `"50% 115%"`).
+pub fn rays(
+  b: Builder,
+  color: String,
+  count: Int,
+  position: String,
+  opacity: Float,
+) -> Builder {
+  xeerpe.rays(
+    b,
+    xeerpe.RaysOptions(
+      ..xeerpe.rays_options,
+      color: Some(color),
+      count: Some(count),
+      position: Some(position),
+      opacity: Some(opacity),
+    ),
+  )
+}
+
 // -- animations --
 
 fn duration(d: String) -> AnimationOptions {
