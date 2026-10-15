@@ -371,6 +371,59 @@ pub fn new_animations_test() {
   |> same("animations2", _)
 }
 
+pub fn animation_targets_test() {
+  let a = xeerpe.animation_options
+  let d = fn(x) { AnimationOptions(..a, duration: Some(x)) }
+  xeerpe.new()
+  |> quick.linear("#aa0000", "#0000bb", deg: 180.0)
+  |> xeerpe.dots(
+    xeerpe.DotsOptions(
+      ..xeerpe.dots_options,
+      color: Some("#fff"),
+      size: Some("4px"),
+      spacing: Some("24px"),
+    ),
+  )
+  |> xeerpe.breathe(d("6s"))
+  |> xeerpe.animation_target(xeerpe.TargetPatterns)
+  |> xeerpe.drift(d("8s"))
+  |> xeerpe.liquid(a)
+  |> xeerpe.animation_target(xeerpe.TargetAll)
+  |> xeerpe.animation(xeerpe.Shimmer, d("2s"))
+  |> xeerpe.animation_target(xeerpe.TargetGradients)
+  |> same("targets", _)
+
+  let assert Ok(lights) = xeerpe.preset("northern-lights")
+  lights
+  |> xeerpe.drift(a)
+  |> xeerpe.animation_target(xeerpe.TargetAll)
+  |> same("preset_target", _)
+}
+
+pub fn animation_target_needs_an_animation_test() {
+  let b = xeerpe.new() |> quick.linear("#aa0000", "#0000bb", deg: 180.0)
+  assert xeerpe.animation_target(b, xeerpe.TargetAll) == b
+  assert xeerpe.animation_target(xeerpe.new(), xeerpe.TargetAll) == xeerpe.new()
+
+  // the target reaches xeerpe
+  let breathing =
+    b
+    |> xeerpe.dots(xeerpe.dots_options)
+    |> xeerpe.breathe(xeerpe.animation_options)
+  assert xeerpe.to_style(breathing)
+    != xeerpe.to_style(xeerpe.animation_target(breathing, xeerpe.TargetAll))
+
+  let animated = b |> xeerpe.pulse(xeerpe.animation_options)
+  let targeted = xeerpe.animation_target(animated, xeerpe.TargetPatterns)
+  assert xeerpe.layer_target(targeted, 1) == Some(xeerpe.TargetPatterns)
+  assert xeerpe.layer_target(targeted, 0) == None
+  assert xeerpe.layer_target(animated, 1) == None
+  // the last call wins
+  assert xeerpe.animation_target(targeted, xeerpe.TargetAll)
+    |> xeerpe.layer_target(1)
+    == Some(xeerpe.TargetAll)
+}
+
 pub fn hex8_colors_test() {
   xeerpe.new()
   |> xeerpe.dots(DotsOptions(..xeerpe.dots_options, color: Some("#ffffff80")))

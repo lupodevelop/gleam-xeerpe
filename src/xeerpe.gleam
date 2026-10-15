@@ -409,6 +409,14 @@ pub type AnimationOptions {
 
 pub const animation_options = AnimationOptions(None, None, None, None)
 
+/// xeerpe's `AnimationTarget`: the layers an animation moves. xeerpe moves the
+/// gradients unless told otherwise. Set it with `animation_target`.
+pub type AnimationTarget {
+  TargetGradients
+  TargetPatterns
+  TargetAll
+}
+
 // -- types xeerpe only declares --
 
 pub type LayerType {
@@ -485,7 +493,13 @@ pub type Layer {
 /// Plain data: nothing runs until `to_style`, so it can sit in a Lustre model
 /// and be compared with `==`.
 pub opaque type Builder {
-  Builder(base: Option(String), layers: List(Layer))
+  // targets: the `target` option of animation layers, by layer index.
+  // Kept apart so `AnimationOptions` and `Layer` stay as they were.
+  Builder(
+    base: Option(String),
+    layers: List(Layer),
+    targets: List(#(Int, AnimationTarget)),
+  )
 }
 
 /// xeerpe's `PresetConfig`.
@@ -494,14 +508,14 @@ pub type PresetConfig =
 
 /// `new Builder()`.
 pub fn new() -> Builder {
-  Builder(None, [])
+  Builder(None, [], [])
 }
 
 /// `new Preset(name)`. An unknown name is an `Error` instead of an exception.
 /// `preset_names` lists the names; the bundled xeerpe has more than 200.
 pub fn preset(name: String) -> Result(Builder, String) {
   case preset_exists(name) {
-    True -> Ok(Builder(Some(name), []))
+    True -> Ok(Builder(Some(name), [], []))
     False -> Error(name)
   }
 }
@@ -520,7 +534,7 @@ pub fn preset_categories() -> List(#(String, List(String)))
 
 /// The version of the xeerpe copy inside this package. Only a label: the code does
 /// not read it, and `scripts/update-xeerpe.sh` keeps it up to date.
-pub const bundled_version = "1.0.2"
+pub const bundled_version = "1.0.5"
 
 /// Use another xeerpe instead of the bundled one, for example a newer npm release.
 /// Pass the module (it needs `Builder` and `Preset`) once, when the app starts.
@@ -609,6 +623,69 @@ pub fn animation(
   add(b, AnimationCall(type_, options))
 }
 
+/// Sets xeerpe's `target` option on the animation just added: which layers it
+/// moves. Does nothing if the last call is not an animation.
+///
+/// ```gleam
+/// xeerpe.new()
+/// |> quick.linear("#1a0b05", "#060302", deg: 160.0)
+/// |> quick.dots("#FF7A18", "4px", "24px", 0.3)
+/// |> quick.drift("8s")
+/// |> xeerpe.animation_target(xeerpe.TargetPatterns)
+/// ```
+pub fn animation_target(b: Builder, target: AnimationTarget) -> Builder {
+  case list.last(b.layers) {
+    Ok(layer) ->
+      case is_animation(layer) {
+        True -> {
+          let index = list.length(b.layers) - 1
+          Builder(..b, targets: list.key_set(b.targets, index, target))
+        }
+        False -> b
+      }
+    Error(Nil) -> b
+  }
+}
+
+/// The target set with `animation_target` on a layer, if any. `index` is the
+/// layer's 0-based position in `layers(b)`.
+pub fn layer_target(b: Builder, index: Int) -> Option(AnimationTarget) {
+  option.from_result(list.key_find(b.targets, index))
+}
+
+fn is_animation(layer: Layer) -> Bool {
+  case layer {
+    AnimationCall(..)
+    | PulseCall(_)
+    | RotateCall(_)
+    | BreatheCall(_)
+    | AuroraCall(_)
+    | ShimmerCall(_)
+    | LiquidCall(_)
+    | PlasmaCall(_)
+    | FloatCall(_)
+    | DriftCall(_) -> True
+    // listed one by one, so a new animation call is a compile error here
+    GradientCall(..)
+    | LinearGradientCall(_)
+    | RadialGradientCall(_)
+    | ConicGradientCall(_)
+    | MeshGradientCall(_)
+    | EffectCall(..)
+    | FilterCall(..)
+    | PatternCall(..)
+    | NoiseCall(_)
+    | VignetteCall(_)
+    | GrainCall(_)
+    | GlowCall(_)
+    | BlurCall(_)
+    | DotsCall(_)
+    | GridCall(_)
+    | StarsCall(_)
+    | RaysCall(_) -> False
+  }
+}
+
 pub fn noise(b: Builder, options: NoiseOptions) -> Builder {
   add(b, NoiseCall(options))
 }
@@ -693,10 +770,17 @@ pub fn to_text_style(b: Builder) -> Dict(String, String) {
 
 /// Replays the layers on a fresh xeerpe `Builder`.
 fn render(b: Builder, text: Bool) -> List(#(String, String)) {
-  build(option.unwrap(b.base, ""), list.map(b.layers, call), text)
+  let calls =
+    list.index_map(b.layers, fn(layer, index) {
+      call(layer, layer_target(b, index))
+    })
+  build(option.unwrap(b.base, ""), calls, text)
 }
 
-fn call(layer: Layer) -> #(String, List(Dynamic)) {
+fn call(
+  layer: Layer,
+  target: Option(AnimationTarget),
+) -> #(String, List(Dynamic)) {
   case layer {
     GradientCall(t, o) -> #("gradient", [
       dynamic.string(gradient_name(t)),
@@ -717,7 +801,7 @@ fn call(layer: Layer) -> #(String, List(Dynamic)) {
     ])
     AnimationCall(t, o) -> #("animation", [
       dynamic.string(animation_name(t)),
-      animation_opts(o),
+      animation_opts(o, target),
     ])
     NoiseCall(o) -> #("noise", [noise_opts(o)])
     VignetteCall(o) -> #("vignette", [vignette_opts(o)])
@@ -728,15 +812,15 @@ fn call(layer: Layer) -> #(String, List(Dynamic)) {
     GridCall(o) -> #("grid", [grid_opts(o)])
     StarsCall(o) -> #("stars", [stars_opts(o)])
     RaysCall(o) -> #("rays", [rays_opts(o)])
-    PulseCall(o) -> #("pulse", [animation_opts(o)])
-    RotateCall(o) -> #("rotate", [animation_opts(o)])
-    BreatheCall(o) -> #("breathe", [animation_opts(o)])
-    AuroraCall(o) -> #("aurora", [animation_opts(o)])
-    ShimmerCall(o) -> #("shimmer", [animation_opts(o)])
-    LiquidCall(o) -> #("liquid", [animation_opts(o)])
-    PlasmaCall(o) -> #("plasma", [animation_opts(o)])
-    FloatCall(o) -> #("float", [animation_opts(o)])
-    DriftCall(o) -> #("drift", [animation_opts(o)])
+    PulseCall(o) -> #("pulse", [animation_opts(o, target)])
+    RotateCall(o) -> #("rotate", [animation_opts(o, target)])
+    BreatheCall(o) -> #("breathe", [animation_opts(o, target)])
+    AuroraCall(o) -> #("aurora", [animation_opts(o, target)])
+    ShimmerCall(o) -> #("shimmer", [animation_opts(o, target)])
+    LiquidCall(o) -> #("liquid", [animation_opts(o, target)])
+    PlasmaCall(o) -> #("plasma", [animation_opts(o, target)])
+    FloatCall(o) -> #("float", [animation_opts(o, target)])
+    DriftCall(o) -> #("drift", [animation_opts(o, target)])
   }
 }
 
@@ -1105,7 +1189,10 @@ fn animation_name(t: AnimationType) -> String {
   }
 }
 
-fn animation_opts(o: AnimationOptions) -> Dynamic {
+fn animation_opts(
+  o: AnimationOptions,
+  target: Option(AnimationTarget),
+) -> Dynamic {
   obj([
     #("duration", str(o.duration)),
     #("easing", str(o.easing)),
@@ -1127,6 +1214,16 @@ fn animation_opts(o: AnimationOptions) -> Dynamic {
           Count(n) -> dynamic.int(n)
           Infinite -> dynamic.string("infinite")
         }
+      }),
+    ),
+    #(
+      "target",
+      option.map(target, fn(t) {
+        dynamic.string(case t {
+          TargetGradients -> "gradients"
+          TargetPatterns -> "patterns"
+          TargetAll -> "all"
+        })
       }),
     ),
   ])

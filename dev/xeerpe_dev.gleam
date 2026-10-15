@@ -14,6 +14,7 @@ import xeerpe/colors
 import xeerpe/css
 import xeerpe/quick as q
 import xeerpe_dev/gallery.{type Card, Card, Fill, On, Swatch, Text}
+import xeerpe_dev/playground
 
 pub fn main() {
   let app = lustre.application(init, update, view)
@@ -24,16 +25,18 @@ pub fn main() {
 type Tab {
   GalleryTab
   ReferenceTab
+  PlaygroundTab
 }
 
 type Model {
-  Model(tab: Tab, random: List(Card))
+  Model(tab: Tab, random: List(Card), playground: playground.Model)
 }
 
 type Msg {
   Shuffle
   Generated(List(Card))
   SetTab(Tab)
+  PlaygroundMsg(playground.Msg)
 }
 
 @external(javascript, "./xeerpe_dev_ffi.mjs", "read_hash")
@@ -42,13 +45,14 @@ fn read_hash() -> String
 @external(javascript, "./xeerpe_dev_ffi.mjs", "write_hash")
 fn write_hash(hash: String) -> Nil
 
-/// `#reference` opens the Reference tab.
+/// `#reference` and `#playground` open those tabs.
 fn init(_) -> #(Model, Effect(Msg)) {
   let tab = case read_hash() {
     "#reference" -> ReferenceTab
+    "#playground" -> PlaygroundTab
     _ -> GalleryTab
   }
-  #(Model(tab, []), generate())
+  #(Model(tab, [], playground.init()), generate())
 }
 
 fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
@@ -60,10 +64,15 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.from(fn(_) {
         write_hash(case tab {
           ReferenceTab -> "#reference"
+          PlaygroundTab -> "#playground"
           GalleryTab -> ""
         })
       }),
     )
+    PlaygroundMsg(msg) -> {
+      let #(pg, fx) = playground.update(model.playground, msg)
+      #(Model(..model, playground: pg), effect.map(fx, PlaygroundMsg))
+    }
   }
 }
 
@@ -176,27 +185,15 @@ fn random_extras() -> List(Step) {
     }),
   ]
   let chosen = pool |> list.shuffle |> list.take(int.random(4))
-  // breathe/aurora/liquid resize every layer and stretch patterns,
-  // so a patterned chain only gets the others.
-  let patterned =
-    list.any(chosen, fn(s) {
-      list.any(["dots", "grid", "stars", "rays"], string.contains(s.0, _))
-    })
-  let safe: List(Step) = [
+  let animations: List(Step) = [
     #("quick.pulse(\"1.5s\")", fn(x) { q.pulse(x, "1.5s") }),
     #("quick.plasma(\"6s\")", fn(x) { q.plasma(x, "6s") }),
     #("quick.float(\"2s\")", fn(x) { q.float(x, "2s") }),
     #("quick.drift(\"5s\")", fn(x) { q.drift(x, "5s") }),
-  ]
-  let resizing: List(Step) = [
     #("quick.breathe(\"3s\")", fn(x) { q.breathe(x, "3s") }),
     #("quick.aurora(\"2.5s\")", fn(x) { q.aurora(x, "2.5s") }),
     #("quick.liquid(\"4s\")", fn(x) { q.liquid(x, "4s") }),
   ]
-  let animations = case patterned {
-    True -> safe
-    False -> list.append(safe, resizing)
-  }
   // any order
   case int.random(2) {
     0 -> list.shuffle([pick(animations), ..chosen])
@@ -310,9 +307,12 @@ fn view(model: Model) -> Element(Msg) {
         sections,
       )
     ReferenceTab -> reference_sections()
+    PlaygroundTab -> [
+      element.map(playground.view(model.playground), PlaygroundMsg),
+    ]
   }
   html.div([class("page")], [
-    html.style([], css),
+    html.style([], css <> playground.styles),
     html.div([class("bg"), style(backdrop())], []),
     html.header([class("hero")], [
       html.div([class("eq")], [
@@ -363,6 +363,7 @@ fn tabs(current: Tab) -> Element(Msg) {
   html.nav([class("tabs")], [
     tab("Gallery", GalleryTab),
     tab("Reference", ReferenceTab),
+    tab("Playground", PlaygroundTab),
   ])
 }
 

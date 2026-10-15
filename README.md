@@ -68,6 +68,19 @@ gold |> quick.grain(2.0)
 
 `xeerpe.preset_names()` lists all, `xeerpe.preset_categories()` groups them.
 
+## Animations
+
+`quick.breathe("6s")` and the other animations move the gradients. To move the patterns, or every
+layer, set the target right after the animation:
+
+```gleam
+xeerpe.new()
+|> quick.linear("#1a0b05", "#060302", deg: 160.0)
+|> quick.dots("#FF7A18", "4px", "24px", 0.3)
+|> quick.drift("8s")
+|> xeerpe.animation_target(xeerpe.TargetPatterns)
+```
+
 ## Builders are data
 
 A `Builder` is just a list of calls. Nothing runs until `css.properties`. Keep one in your model,
@@ -102,11 +115,10 @@ This changes behaviour only. The Gleam API stays the one of the bundled version.
 
 ## Quirks
 
-In xeerpe <!--v-->1.0.2<!--/v-->:
+In xeerpe <!--v-->1.0.5<!--/v-->:
 
-- `breathe`, `aurora` and `liquid` resize every layer, so patterns stretch.
 - Animation `direction` only works with `pulse` and `aurora`.
-- `DotsOptions.style` and `GrainOptions.animated` do nothing.
+- `DotsOptions.style` does nothing.
 - An animated gradient may show a thin line on one edge. Add `background-repeat: no-repeat`.
 
 ## Development
@@ -114,7 +126,7 @@ In xeerpe <!--v-->1.0.2<!--/v-->:
 ```sh
 npm install --prefix test/npm-xeerpe   # xeerpe from npm, the tests compare against it
 gleam test
-gleam run -m lustre/dev start xeerpe_dev   # demo, add #reference for every option
+gleam run -m lustre/dev start xeerpe_dev   # demo; #reference for every option, #playground to build one
 scripts/update-xeerpe.sh [version]         # bundle a new xeerpe release
 scripts/build-site.sh                      # demo site into dist/
 ```

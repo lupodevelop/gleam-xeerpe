@@ -96,6 +96,9 @@ const scenarios = {
   text: () => new Builder().linearGradient({ from: "#111", to: "#222" }).toTextStyle(),
   animations2: () =>
     new Builder().shimmer({ duration: "1s" }).liquid({ easing: "linear" }).plasma({ iterationCount: 2 }).float({ direction: "reverse" }).drift({ duration: "5s" }).animation("shimmer", { duration: "2s" }).toStyle(),
+  targets: () =>
+    new Builder().linearGradient({ from: "#aa0000", to: "#0000bb", angle: "180deg" }).dots({ color: "#fff", size: "4px", spacing: "24px" }).breathe({ duration: "6s", target: "patterns" }).drift({ duration: "8s" }).liquid({ target: "all" }).animation("shimmer", { duration: "2s", target: "gradients" }).toStyle(),
+  preset_target: () => new Preset("northern-lights").drift({ target: "all" }).toStyle(),
   hex8: () => new Builder().dots({ color: "#ffffff80" }).grid({ color: "#ff000040" }).vignette({ color: "#ffffff80" }).toStyle(),
   // another order, repeated calls, the same layer type twice
   shuffled: () =>
