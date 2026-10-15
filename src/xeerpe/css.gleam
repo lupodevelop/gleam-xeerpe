@@ -61,7 +61,8 @@ fn kebab(s: String) -> String {
 /// xeerpe's `animations.css`, kept as a string so no bundler has to import CSS.
 /// For a server-rendered page, put it in a `<style>`.
 pub const keyframes = "@keyframes xeerpe-pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -79,49 +80,50 @@ pub const keyframes = "@keyframes xeerpe-pulse {
 }
 
 @keyframes xeerpe-breathe {
-    0%, 100% {
-        background-size: 100% 100%;
+    0%,
+    100% {
+        background-size: var(--xeerpe-breathe-size-from, 100% 100%);
     }
     50% {
-        background-size: 200% 200%;
+        background-size: var(--xeerpe-breathe-size-to, 200% 200%);
     }
 }
 
 @keyframes xeerpe-aurora {
     0% {
-        background-size: 100% 100%;
+        background-size: var(--xeerpe-aurora-size-from, 100% 100%);
     }
     50% {
-        background-size: 120% 120%;
+        background-size: var(--xeerpe-aurora-size-to, 120% 120%);
     }
     100% {
-        background-size: 100% 100%;
+        background-size: var(--xeerpe-aurora-size-from, 100% 100%);
     }
 }
 
 @keyframes xeerpe-shimmer {
     0% {
-        background-position: 200% center;
+        background-position: var(--xeerpe-shimmer-position-from, 200% center);
     }
     100% {
-        background-position: -200% center;
+        background-position: var(--xeerpe-shimmer-position-to, -200% center);
     }
 }
 
 @keyframes xeerpe-liquid {
     0% {
-        background-position: 0% 50%;
-        background-size: 100% 100%;
+        background-position: var(--xeerpe-liquid-position-from, 0% 50%);
+        background-size: var(--xeerpe-liquid-size-from, 100% 100%);
         filter: hue-rotate(0deg);
     }
     50% {
-        background-position: 100% 50%;
-        background-size: 200% 200%;
+        background-position: var(--xeerpe-liquid-position-to, 100% 50%);
+        background-size: var(--xeerpe-liquid-size-to, 200% 200%);
         filter: hue-rotate(30deg);
     }
     100% {
-        background-position: 0% 50%;
-        background-size: 100% 100%;
+        background-position: var(--xeerpe-liquid-position-from, 0% 50%);
+        background-size: var(--xeerpe-liquid-size-from, 100% 100%);
         filter: hue-rotate(0deg);
     }
 }
@@ -136,7 +138,8 @@ pub const keyframes = "@keyframes xeerpe-pulse {
 }
 
 @keyframes xeerpe-float {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateY(0px);
     }
     50% {
@@ -146,12 +149,12 @@ pub const keyframes = "@keyframes xeerpe-pulse {
 
 @keyframes xeerpe-drift {
     0% {
-        background-position: 0% 0%;
+        background-position: var(--xeerpe-drift-position-from, 0% 0%);
     }
     50% {
-        background-position: 100% 100%;
+        background-position: var(--xeerpe-drift-position-to, 100% 100%);
     }
     100% {
-        background-position: 0% 0%;
+        background-position: var(--xeerpe-drift-position-from, 0% 0%);
     }
 }"
